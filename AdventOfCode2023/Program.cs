@@ -1,7 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
-using AdventOfCode2023.Framework;
 using static System.Console;
 using static System.ConsoleColor;
 
@@ -91,7 +89,7 @@ public class Program
     private static object? GetAnswer(MethodInfo methodInfo)
     {
         var instance = methodInfo.IsStatic ? null : Activator.CreateInstance(methodInfo.DeclaringType!);
-        var input = InputDataManager.GetInputArgs(methodInfo);
+        var input = InputDataManager.GetInputArgs(methodInfo, "input");
 
         return methodInfo.Invoke(instance, input);
     }
@@ -102,7 +100,15 @@ public class Program
         if (testAttribute == null) return;
             
         var instance = methodInfo.IsStatic ? null : Activator.CreateInstance(methodInfo.DeclaringType!);
-        var input = InputDataManager.GetInputArgs(methodInfo, testAttribute.Filename);
+
+        var fileName = testAttribute.Filename ??
+                       methodInfo.Name switch
+                       {
+                           "GetAnswer1" => "ExampleInput1",
+                           "GetAnswer2" => "ExampleInput2",
+                           _ => "ExampleInput"
+                       };
+        var input = InputDataManager.GetInputArgs(methodInfo, fileName);
 
         var result =  methodInfo.Invoke(instance, input);
 

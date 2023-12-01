@@ -1,14 +1,11 @@
-﻿using System;
-using AdventOfCode2023.Framework;
+﻿namespace AdventOfCode2023.Puzzles.D01;
 
-namespace AdventOfCode2023.Puzzles.D01;
-
-public class Day01
+public class Day01_org
 {
     private static readonly char[] DigitChars = "1234567890".ToCharArray();
 
     [Result(54561)]
-    [TestCase(result:142, "TestInput_1")]
+    [TestCase(result:142)]
     public static int GetAnswer1(string[] input) => input.Sum(GetCorrection);
 
     private static int GetCorrection(string line)
@@ -19,7 +16,7 @@ public class Day01
     }
 
     [Result(54076)]
-    [TestCase(result:281, "TestInput_2")]
+    [TestCase(result:281)]
     public static int GetAnswer2(string[] input) => input.Sum(GetCorrection2);
 
     private static int GetCorrection2(string line)
