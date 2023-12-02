@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode2023.Puzzles.D01;
 
-public class Day01_org
+public class Day01
 {
     private static readonly char[] DigitChars = "1234567890".ToCharArray();
 
