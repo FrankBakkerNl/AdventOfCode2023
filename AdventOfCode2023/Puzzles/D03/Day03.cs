@@ -1,13 +1,14 @@
-﻿namespace AdventOfCode2023.Puzzles.D03;
+﻿using System.Collections.Generic;
+
+namespace AdventOfCode2023.Puzzles.D03;
 
 public class Day03
 {
-    [Focus]
     [Result(531561)]
     [TestCase(result: 4361)]
-    public static long GetAnswer1(string[] input)
+    public static int GetAnswer1(string[] input)
     {
-        var total = 0l;
+        var total = 0;
         for (int i = 0; i < input.Length; i++)
         {
             var currentNumber = 0;
@@ -26,14 +27,14 @@ public class Day03
                 }
                 else
                 {
-                    if (currentNumber > 0 && FindSymbol(input, i, start-1, j+1))
+                    if (currentNumber > 0 && FindSymbol(input, i, start - 1, j + 1))
                     {
                         total += currentNumber;
                     }
                     currentNumber = 0;
                 }
             }
-            if (currentNumber > 0 && FindSymbol(input, i, start-1, j+1))
+            if (currentNumber > 0 && FindSymbol(input, i, start - 1, j + 1))
             {
                 total += currentNumber;
             }
@@ -62,12 +63,99 @@ public class Day03
 
     static bool IsSymbol(char c) => !char.IsAsciiDigit(c) && c != '.';
 
+    
+    [Result(83279367)]
+    [TestCase(result: 467835)]
+    public static int GetAnswer2(string[] input)
+    {
+        var sum = 0;
+        var schematic = new Schematic(input);
+        for (var i = 0; i < input.Length; i++)
+        {
+            for (var j = 0; j < input[i].Length; j++)
+            {
+                if (schematic[i, j] == '*')
+                {
+                    sum += GetRatio(schematic, i, j);
+                }
+            }
+        }
 
+        return sum;
+    }
 
-    // [Result(2829354)]
-    // [TestCase(result: 230)]
-    // public static int GetAnswer2(string[] input)
-    // {
-    //     
-    // }
+    private static int GetRatio(Schematic input, int i, int j)
+    {
+        var found = new List<int?>();
+        found.Add(FindNumberAtPosition(input, i, j - 1));
+        found.Add(FindNumberAtPosition(input, i, j + 1));
+        var aboveNumber = FindNumberAtPosition(input, i - 1, j);
+        var belowNumber = FindNumberAtPosition(input, i+1, j);
+        found.Add(aboveNumber);
+        found.Add(belowNumber);
+
+        if (belowNumber == null)
+        {
+            // only if there is no number directly below this * we look diagonally below
+            found.Add(FindNumberAtPosition(input, i + 1, j - 1));
+            found.Add(FindNumberAtPosition(input, i + 1, j + 1));
+        }
+
+        if (aboveNumber == null)
+        {
+            // only if there is no number directly below this * we look diagonally above
+            found.Add(FindNumberAtPosition(input, i - 1, j + 1));
+            found.Add(FindNumberAtPosition(input, i - 1, j - 1));
+        }
+
+        var matches = found.OfType<int>().ToList(); 
+        if (matches.Count == 2)
+        {
+            return matches[0] * matches[1];
+        }
+
+        return 0;
+    }
+
+    public static int? FindNumberAtPosition(Schematic input, int i, int j)
+    {
+        // check left of current *
+        var scanPosition = j;
+        var c = input[i, scanPosition--];
+        if (!char.IsAsciiDigit(c)) return null;
+        var factor = 1;
+        int number = 0;
+        while (char.IsAsciiDigit(c))
+        {
+            // while reading right to left each next digit is a factor 10 higher
+            number += (c - '0') * factor;
+            factor *= 10;
+            c = input[i, scanPosition--];
+        }
+        
+        scanPosition = j + 1;
+
+        c = input[i, scanPosition++];
+        while (char.IsAsciiDigit(c))
+        {
+            // while reading left to right each next digit means we need to multiply all previous read by 10  
+            number *= 10;
+            number += c - '0';
+            c = input[i, scanPosition++];
+        }        
+
+        return number;
+    }
+
+    public class Schematic(string[] input)
+    {
+        public char this[int i, int j]
+        {
+            get
+            {
+                if (i < 0 || i >= input.Length || j < 0 || j >= input[i].Length) return '.';
+                return input[i][j];
+            }
+        }
+    }
 }

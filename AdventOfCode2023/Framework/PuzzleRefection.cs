@@ -6,10 +6,11 @@ namespace AdventOfCode2023.Framework;
 
 public class PuzzleRefection
 {
-    public static IEnumerable<MethodInfo> GetAnswerMethods(bool ignoreFocus = false)
+    public static IEnumerable<MethodInfo> GetAnswerMethods(bool ignoreFocus = false, bool optimized = false)
     {
-        var methods = GetPuzzleClasses().SelectMany(GetAnswerMethods)
-            .Where(m => m.GetCustomAttribute<SkipAttribute>() == null);
+        var classes = optimized ? GetOptimizedPuzzleClasses() : GetPuzzleClasses();
+        var methods = classes.SelectMany(GetAnswerMethods)
+            .Where(m => m.GetCustomAttribute<SkipAttribute>() == null).ToList();
             
         if (ignoreFocus) return methods;
 
@@ -22,6 +23,12 @@ public class PuzzleRefection
             .Where(t => Regex.IsMatch(t.Name, "^Day[0-9][0-9]$"))
             .OrderBy(t => t.Name).ToList();
 
+    
+    public static List<Type> GetOptimizedPuzzleClasses() =>
+        Assembly.GetExecutingAssembly().GetTypes()
+            .Where(t => Regex.IsMatch(t.Name, "^Day[0-9][0-9]Optimized$"))
+            .OrderBy(t => t.Name).ToList();
+    
     private static IEnumerable<MethodInfo> GetAnswerMethods(Type puzzleClass) => 
         puzzleClass.GetMethods()
             .Where(m => m.Name.StartsWith("GetAnswer", StringComparison.OrdinalIgnoreCase));
