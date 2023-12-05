@@ -1,0 +1,51 @@
+﻿using System.Collections.Generic;
+
+namespace AdventOfCode2020.Puzzles.Day04;
+
+public class Day04
+{
+    [Result(21158)]
+    [TestCase(result: 13)]
+    public static int GetAnswer1(string[] input) => input.Sum(GetPoints);
+
+    private static int GetPoints(string line)
+    {
+        var matchCount = GetMatchCount(line);
+        return (int)Math.Pow(2, matchCount -1);
+    }
+
+    private static int GetMatchCount(string line)
+    {
+        var (set0, set1) = ParseLine(line);
+        return set0.Intersect(set1).Count();
+    }
+
+    private static (IEnumerable<int>, IEnumerable<int>) ParseLine(string line)
+    {
+        var lineSpan = line.AsSpan();
+        // parse `Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53`
+        var data = line.Split(':')[1];
+        var split = data.Split('|');
+        var set0 = split[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+        var set1 = split[1].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+        return (set0, set1);
+    }
+
+    [Result(6050769)]
+    [TestCase(result: 30)]
+    public static int GetAnswer2(string[] input)
+    {
+        var matchcounts = input.Select(GetMatchCount).ToArray();
+        var copyCount = Enumerable.Repeat(1, input.Length).ToArray();
+        for (int i = 0; i < input.Length; i++)
+        {
+            var increment = copyCount[i];
+            for (int j = 1; i + j <= i + matchcounts[i] && i + j < input.Length; j++)
+            {
+                copyCount[i + j] += increment;
+            }
+        }
+
+        return copyCount.Sum();
+    }
+}

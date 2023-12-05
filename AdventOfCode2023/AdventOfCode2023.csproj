@@ -6,4 +6,8 @@
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
+  </ItemGroup>
 </Project>

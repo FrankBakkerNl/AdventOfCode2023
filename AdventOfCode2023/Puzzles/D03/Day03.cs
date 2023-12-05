@@ -86,29 +86,10 @@ public class Day03
 
     private static int GetRatio(Schematic input, int i, int j)
     {
-        var found = new List<int?>();
-        found.Add(FindNumberAtPosition(input, i, j - 1));
-        found.Add(FindNumberAtPosition(input, i, j + 1));
-        var aboveNumber = FindNumberAtPosition(input, i - 1, j);
-        var belowNumber = FindNumberAtPosition(input, i+1, j);
-        found.Add(aboveNumber);
-        found.Add(belowNumber);
+        var found = EnumerateSurroundingNumbers(input, i, j);
 
-        if (belowNumber == null)
-        {
-            // only if there is no number directly below this * we look diagonally below
-            found.Add(FindNumberAtPosition(input, i + 1, j - 1));
-            found.Add(FindNumberAtPosition(input, i + 1, j + 1));
-        }
-
-        if (aboveNumber == null)
-        {
-            // only if there is no number directly below this * we look diagonally above
-            found.Add(FindNumberAtPosition(input, i - 1, j + 1));
-            found.Add(FindNumberAtPosition(input, i - 1, j - 1));
-        }
-
-        var matches = found.OfType<int>().ToList(); 
+        // Stop searching after 3 numbers are found 
+        var matches = found.OfType<int>().Take(3).ToList(); 
         if (matches.Count == 2)
         {
             return matches[0] * matches[1];
@@ -117,6 +98,30 @@ public class Day03
         return 0;
     }
 
+    private static IEnumerable<int?> EnumerateSurroundingNumbers(Schematic input, int i, int j)
+    {
+        yield return FindNumberAtPosition(input, i, j - 1);
+        yield return FindNumberAtPosition(input, i, j + 1);
+        var aboveNumber = FindNumberAtPosition(input, i - 1, j);
+        var belowNumber = FindNumberAtPosition(input, i + 1, j);
+        yield return aboveNumber;
+        yield return belowNumber;
+
+        if (belowNumber == null)
+        {
+            // only if there is no number directly below this * we look diagonally below
+            yield return FindNumberAtPosition(input, i + 1, j - 1);
+            yield return FindNumberAtPosition(input, i + 1, j + 1);
+        }
+
+        if (aboveNumber == null)
+        {
+            // only if there is no number directly below this * we look diagonally above
+            yield return FindNumberAtPosition(input, i - 1, j + 1);
+            yield return FindNumberAtPosition(input, i - 1, j - 1);
+        }
+    }    
+    
     public static int? FindNumberAtPosition(Schematic input, int i, int j)
     {
         // check left of current *
