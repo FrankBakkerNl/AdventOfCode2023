@@ -11,7 +11,7 @@ public class Day04
     private static int GetPoints(string line)
     {
         var matchCount = GetMatchCount(line);
-        return (int)Math.Pow(2, matchCount -1);
+        return matchCount == 0 ? 0 : 1 << matchCount - 1;
     }
 
     private static int GetMatchCount(string line)
@@ -20,13 +20,14 @@ public class Day04
         return set0.Intersect(set1).Count();
     }
 
+    private static readonly char[] SplitseSeparator = ":|".ToArray();
+
     private static (IEnumerable<int>, IEnumerable<int>) ParseLine(string line)
     {
         // parse `Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53`
-        var data = line.Split(':')[1];
-        var split = data.Split('|');
-        var set0 = split[0].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
-        var set1 = split[1].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+        var split = line.Split(SplitseSeparator);
+        var set0 = split[1].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+        var set1 = split[2].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
         return (set0, set1);
     }
 
@@ -35,13 +36,12 @@ public class Day04
     public static int GetAnswer2(string[] input)
     {
         var total = 0;
-        var matchCounts = input.Select(GetMatchCount).ToArray();
-        var copyCount = Enumerable.Repeat(1, input.Length).ToArray();
+        var copyCount = new int[input.Length]; // keep track of copies, initialized to 0, so we need to compensate later 
         
         for (int i = 0; i < input.Length; i++)
         {
-            var numberOfCopiesCurrentCard = copyCount[i];
-            var numberOfCardsToCopy = matchCounts[i];
+            var numberOfCopiesCurrentCard = copyCount[i] + 1; // As we only count added copies, add 1 for the original card
+            var numberOfCardsToCopy = GetMatchCount(input[i]);
             total += numberOfCopiesCurrentCard;
 
             for (int j = i + 1; j <= i + numberOfCardsToCopy && j < input.Length; j++)
