@@ -22,7 +22,6 @@ public class Day04
 
     private static (IEnumerable<int>, IEnumerable<int>) ParseLine(string line)
     {
-        var lineSpan = line.AsSpan();
         // parse `Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53`
         var data = line.Split(':')[1];
         var split = data.Split('|');
@@ -35,17 +34,22 @@ public class Day04
     [TestCase(result: 30)]
     public static int GetAnswer2(string[] input)
     {
-        var matchcounts = input.Select(GetMatchCount).ToArray();
+        var total = 0;
+        var matchCounts = input.Select(GetMatchCount).ToArray();
         var copyCount = Enumerable.Repeat(1, input.Length).ToArray();
+        
         for (int i = 0; i < input.Length; i++)
         {
-            var increment = copyCount[i];
-            for (int j = 1; i + j <= i + matchcounts[i] && i + j < input.Length; j++)
+            var numberOfCopiesCurrentCard = copyCount[i];
+            var numberOfCardsToCopy = matchCounts[i];
+            total += numberOfCopiesCurrentCard;
+
+            for (int j = i + 1; j <= i + numberOfCardsToCopy && j < input.Length; j++)
             {
-                copyCount[i + j] += increment;
+                copyCount[j] += numberOfCopiesCurrentCard;
             }
         }
 
-        return copyCount.Sum();
+        return total;
     }
 }
