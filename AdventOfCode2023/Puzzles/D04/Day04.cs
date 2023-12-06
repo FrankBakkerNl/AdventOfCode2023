@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace AdventOfCode2020.Puzzles.Day04;
+﻿namespace AdventOfCode2023.Puzzles.Day04;
 
 public class Day04
 {
@@ -20,12 +18,12 @@ public class Day04
         return set0.Intersect(set1).Count();
     }
 
-    private static readonly char[] SplitseSeparator = ":|".ToArray();
+    private static readonly char[] SplitSeparator = ":|".ToArray();
 
     private static (IEnumerable<int>, IEnumerable<int>) ParseLine(string line)
     {
         // parse `Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53`
-        var split = line.Split(SplitseSeparator);
+        var split = line.Split(SplitSeparator);
         var set0 = split[1].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
         var set1 = split[2].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
         return (set0, set1);

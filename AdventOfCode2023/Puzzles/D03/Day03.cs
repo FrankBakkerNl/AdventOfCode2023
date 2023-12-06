@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace AdventOfCode2023.Puzzles.D03;
+﻿namespace AdventOfCode2023.Puzzles.D03;
 
 public class Day03
 {
