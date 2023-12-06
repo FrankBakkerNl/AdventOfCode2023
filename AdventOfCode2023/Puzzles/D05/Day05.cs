@@ -1,6 +1,4 @@
-﻿using static System.Math;
-
-namespace AdventOfCode2023.Puzzles.Day04;
+﻿namespace AdventOfCode2023.Puzzles.Day04;
 
 /// <summary>
 /// https://adventofcode.com/2023/day/5
