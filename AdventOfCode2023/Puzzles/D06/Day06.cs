@@ -29,7 +29,7 @@ public class Day06
     {
         var (min, max) = GetSoltions(time, recordDistance);
         // we need to get the number of integers > min and < max (not counting min and max itself) 
-        return (long)Ceiling(max - 1) - (long)Floor(min + 1) + 1;
+        return  double.IsNaN(max) ? 0 : (long)Ceiling(max - 1) - (long)Floor(min + 1) + 1;
     }
     
     static (double min, double max) GetSoltions(long gameTime, long recordDistance)
@@ -58,9 +58,8 @@ public class Day06
     static (double r1, double r2) SolveQuadratic(int a, in long b, long c)
     {
         var d = b * b - 4 * a * c;
-        if (d < 0) throw new InvalidOperationException("No solution");
         
-        var root = d == 0 ? d: Sqrt(d);
+        var root = Sqrt(d);
         var r1 = (-b + root) / (2 * a);
         var r2 = (-b - root) / (2 * a);
         return (r1, r2);
