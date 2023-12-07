@@ -65,16 +65,16 @@ public class Day06
         return (r1, r2);
     }
 
-    static (int time, int distance)[] GetRaces(string[] input)
+    static IEnumerable<(int time, int distance)> GetRaces(string[] input)
     {
         var times = GetNumbers(input[0].Split(":")[1]);
         var distances = GetNumbers(input[1].Split(":")[1]);
-        return times.Zip(distances).Select(t => (t.First, t.Second)).ToArray();
+        return times.Zip(distances);
     }
     
-    static int[] GetNumbers(string line) => line
+    static IEnumerable<int> GetNumbers(string line) => line
         .Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-        .Select(int.Parse).ToArray();
+        .Select(int.Parse);
 
     private static (long time, long recordDistance) GetSingleRace(string[] input)
     {
