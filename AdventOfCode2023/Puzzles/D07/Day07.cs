@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2023.Puzzles.Day07;
+﻿using System.Globalization;
+
+namespace AdventOfCode2023.Puzzles.Day07;
 
 /// <summary>
 /// https://adventofcode.com/2023/day/6
@@ -17,15 +19,17 @@ public class Day07
         return ordered.Select((g,i)=>g.bid * (i + 1)).Sum();
     }
 
-    private static IEnumerable<(string hand, int bid)> OrderCard((string hand, int bid)[] gameResults) =>
+    private static IEnumerable<(string hand, int bid)> OrderCard(IEnumerable<(string hand, int bid)> gameResults) =>
         // Hands are primarily ordered based on type; 
         gameResults
             .OrderBy(t => GetTypeValue(t.hand))
-            .ThenByDescending(t => GetHandKey(t.hand));
+            .ThenBy(t => GetHandKey(t.hand));
 
-    static string GetHandKey(string hand) => new(hand.Select((c, i) => GetCardValue(c)).ToArray());
+    static string GetHandKey(string hand) => new(hand.Select(GetCardHexValue).ToArray());
 
-    static char GetCardValue(char c) => (char)('A'+ "AKQJT98765432".IndexOf(c)); // Assign a letter to each value so we can sort on the whole string
+    static char GetCardHexValue(char c) => 
+        char.IsAsciiDigit(c) ? c : 
+        (char)('A'+ "TJQKA".IndexOf(c)); // Convert to a Hex string
 
     static int GetTypeValue(string hand)
     {
@@ -46,12 +50,9 @@ public class Day07
             _ => 1,
         };
     }
-    
-    const string CardsRule2 = "AKQT98765432J";
-    
-    //[Result(28545089L)] // 253718982
+
+    [Result(254083736)]
     [TestCase(result: 5905)]
-    [Focus]
     public static int GetAnswer2(string[] input)
     {
         var gameResults = ParseResults(input);
@@ -61,15 +62,19 @@ public class Day07
         return ordered.Select((g,i)=>g.bid * (i + 1)).Sum();
     }
 
-    private static IEnumerable<(string hand, int bid)> OrderCardJokerRule((string hand, int bid)[] gameResults) =>
+    private static IEnumerable<(string hand, int bid)> OrderCardJokerRule(IEnumerable<(string hand, int bid)> gameResults) =>
         // Hands are primarily ordered based on type; 
         gameResults
             .OrderBy(t => GetTypeValueJokerRule(t.hand))
-            .ThenByDescending(t => GetHandKeyJokerRule(t.hand));
+            .ThenBy(t => GetHandKeyJokerRule(t.hand));
     
-    static string GetHandKeyJokerRule(string hand) => new(hand.Select((c, i) => GetCardValueJokerRule(c)).ToArray());
+    static string GetHandKeyJokerRule(string hand) => new(hand.Select(GetCardHexValueJokerRule).ToArray());
     
-    static char GetCardValueJokerRule(char c) => (char)('A'+ CardsRule2.IndexOf(c));
+    static char GetCardHexValueJokerRule(char c) => 
+        char.IsAsciiDigit(c) ? c : 
+        c == 'J' ? '1' : 
+        (char)('A'+ "TJQKA".IndexOf(c)); // Convert to a Hex string
+
     static int GetTypeValueJokerRule(string hand)
     {
         var charLookup = hand.ToLookup(c => c);
@@ -96,12 +101,7 @@ public class Day07
         };
     }
     
-    
-    private static (string hand, int bid)[] ParseResults(string[] input) => input.Select(ParseLine).ToArray();
+    private static IEnumerable<(string hand, int bid)> ParseResults(string[] input) => input.Select(ParseLine);
 
-    private static (string hand, int bid) ParseLine(string arg)
-    {
-        var split = arg.Split(' ');
-        return (split[0], int.Parse(split[1]));
-    }
+    private static (string hand, int bid) ParseLine(string arg) => (arg[..5], int.Parse(arg[6..], NumberStyles.None));
 }
