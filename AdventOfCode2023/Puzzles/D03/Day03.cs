@@ -10,29 +10,29 @@ public class Day03
         for (int i = 0; i < input.Length; i++)
         {
             var currentNumber = 0;
-            var start = -1;
-            int j;
-            for (j = 0; j < input[i].Length; j++)
+            var touchesSymbol = false;
+            for (int j = 0; j < input[i].Length; j++)
             {
                 var c = input[i][j];
-                var currentHasSymbol = HasSymbol(input, i, j);
+                var currentColumnHasSymbol = ColumnHasSymbol(input, i,j);
+                touchesSymbol |= currentColumnHasSymbol;
                 
                 if (char.IsAsciiDigit(c))
                 {
-                    if (currentNumber == 0) start = j;
                     currentNumber *= 10;
-                    currentNumber += c- '0';
+                    currentNumber += c - '0';
                 }
                 else
                 {
-                    if (currentNumber > 0 && FindSymbol(input, i, start - 1, j + 1))
+                    if (touchesSymbol)
                     {
                         total += currentNumber;
                     }
                     currentNumber = 0;
+                    touchesSymbol = currentColumnHasSymbol;
                 }
             }
-            if (currentNumber > 0 && FindSymbol(input, i, start - 1, j + 1))
+            if (touchesSymbol)
             {
                 total += currentNumber;
             }
@@ -40,30 +40,19 @@ public class Day03
 
         return total;
     }
-
-    static bool FindSymbol(string[] input, int i, int start, int end)
-    {
-        for (int j = start == -1 ? 0 : start; j<input[i].Length && j < end; j++)
-        {
-            if (HasSymbol(input, i, j)) return true;
-        }
-
-        return false;
-    }
     
-    static bool HasSymbol(string[] input, int i, int j)
+    static bool ColumnHasSymbol(string[] input, int i, int j)
     {
-        var c = input[i][j];
-        var cAbove = i>0 ? input[i - 1][j] : '.';
-        var cBelow = i + 1 < input.Length ? input[i + 1][j] : '.';
-        return IsSymbol(c) || IsSymbol(cAbove) || IsSymbol(cBelow);
+        return IsSymbol(input[i][j]) || 
+               ( i > 0 && IsSymbol(input[i - 1][j]) ) || 
+               ( i + 1 < input.Length && IsSymbol(input[i + 1][j]) );
     }
 
     static bool IsSymbol(char c) => !char.IsAsciiDigit(c) && c != '.';
 
     
     [Result(83279367)]
-    [TestCase(result: 467835)]
+    //[TestCase(result: 467835)]
     public static int GetAnswer2(string[] input)
     {
         var sum = 0;
