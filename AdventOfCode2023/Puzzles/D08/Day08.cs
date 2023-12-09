@@ -71,37 +71,33 @@ public class Day08
 
     record CyclePattern(int PreCycle, int CycleTime, int[] zVisist);
    
+    /// <summary>
+    ///  Each ghost has his own path that will eventually have a cycle we want to know
+    /// - the length of the cycle
+    /// - the number of steps before the first cycle starts 
+    /// - where in the cycle the Z value is found
+    /// </summary>
     static CyclePattern FindCyclePattern(int current, HashSet<int> zIndexes, string pattern, int[] leftMap, int[] rightMap)
     {
-        // Each ghost has his own path that will eventually have a cycle we want to know
-        // - the length of the cycle
-        // - the number of steps before the first cycle starts 
-        // - where in the cycle the Z value is found
         var visits = new Dictionary<(int, int), int>();
         var zVisits = new HashSet<int>();
         
-        visits.TryAdd((current, 0 ), 0);
-
-        for (int step = 0; ;)
+        for (int step = 0; ; step++)
         {
-            // We need to wrap around the pattern when at the end, so we can modulo the steps to get the correct index 
-            current = pattern[step % pattern.Length] == 'L' ? leftMap[current] : rightMap[current];
-            step++;
+            if (zIndexes.Contains(current)) zVisits.Add(step);
 
-            if (zIndexes.Contains(current))
-            {
-                zVisits.Add(step);
-            }
-
-            // we are only in a cycle if we are on the same position in the map AND at the same position in the instruction list
+            // we are in a cycle if we are on the same position in the map AND at the same position in the instruction list
             // so we keep track of each such combination and when we visited it
             var positionKey = (current, step % pattern.Length);
             if (!visits.TryAdd(positionKey, step))
             {
-                visits.TryGetValue(positionKey, out var previousVisitStep);
+                var previousVisitStep = visits[positionKey];
                 // we have been here before so we found our cycle time
                 return new CyclePattern(PreCycle: previousVisitStep, CycleTime: step - previousVisitStep, zVisist: zVisits.ToArray());
             }
+
+            // We need to wrap around the pattern when at the end, so we can modulo the steps to get the correct index 
+            current = pattern[step % pattern.Length] == 'L' ? leftMap[current] : rightMap[current];
         }
     }
     
