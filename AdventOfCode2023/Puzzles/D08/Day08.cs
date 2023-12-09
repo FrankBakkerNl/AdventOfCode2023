@@ -79,25 +79,29 @@ public class Day08
     /// </summary>
     static CyclePattern FindCyclePattern(int current, HashSet<int> zIndexes, string pattern, int[] leftMap, int[] rightMap)
     {
-        var visits = new Dictionary<(int, int), int>();
+        Span<int> visits = stackalloc int[pattern.Length * leftMap.Length];
         var zVisits = new HashSet<int>();
         
         for (int step = 0; ; step++)
         {
+            var patternIndex = step % pattern.Length;
             if (zIndexes.Contains(current)) zVisits.Add(step);
 
             // we are in a cycle if we are on the same position in the map AND at the same position in the instruction list
             // so we keep track of each such combination and when we visited it
-            var positionKey = (current, step % pattern.Length);
-            if (!visits.TryAdd(positionKey, step))
+            // as this lookup is the hotspot of this algorithm we combine both into a single integer and use an array
+            var positionKey = current * pattern.Length + patternIndex;
+            if (visits[positionKey] > 0)
             {
-                var previousVisitStep = visits[positionKey];
+                var previousVisitStep = visits[positionKey] -1;
                 // we have been here before so we found our cycle time
                 return new CyclePattern(PreCycle: previousVisitStep, CycleTime: step - previousVisitStep, zVisist: zVisits.ToArray());
             }
 
+            visits[positionKey] = step + 1; // we want 0 to mean 'not visited' so we add 1 to the stepcount and substract later
+
             // We need to wrap around the pattern when at the end, so we can modulo the steps to get the correct index 
-            current = pattern[step % pattern.Length] == 'L' ? leftMap[current] : rightMap[current];
+            current = pattern[patternIndex] == 'L' ? leftMap[current] : rightMap[current];
         }
     }
     
