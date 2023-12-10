@@ -9,7 +9,6 @@ public class Day07
 {
     [Result(253910319)]
     [TestCase(result: 6440)]
-    [Focus]
     public static int GetAnswer1(string[] input)
     {
         var gameResults = ParseResults(input);
