@@ -7,18 +7,29 @@ public class Day11
 {
     [Result(9556896)]
     [TestCase(result: 374)]
-    [Focus]
-    public static int GetAnswer1(string[] input)
+    public static long GetAnswer1(string[] input)
+    {
+        return CalculateTotalDistances(input, 1);
+    }
+    
+    [Result(685038186836)]
+    //[TestCase(result: 8410)] testcase requires expansionFactor to be changed
+    public static long GetAnswer2(string[] input)
+    {
+        return CalculateTotalDistances(input, 999_999);
+    }
+
+    private static long CalculateTotalDistances(string[] input, int expansionFactor)
     {
         var (galaxies, galaxyInRow, galaxyInColumn) = ScanInput(input);
-        var total = 0;
+        long total = 0;
         for (var i = 0; i+1 < galaxies.Count; i++)
         {
             for (var j = i+1; j < galaxies.Count; j++)
             {
                 total += (galaxies[i] - galaxies[j]).Distance;
-                total += Expansion(galaxyInRow, galaxies[i].Y, galaxies[j].Y);
-                total += Expansion(galaxyInColumn, galaxies[i].X, galaxies[j].X);            }
+                total += expansionFactor * Expansion(galaxyInRow, galaxies[i].Y, galaxies[j].Y);
+                total += expansionFactor * Expansion(galaxyInColumn, galaxies[i].X, galaxies[j].X);            }
         }
         return total;
     }
@@ -59,13 +70,7 @@ public class Day11
         return (galaxies, galaxyInRow, galaxyInColumn);
     }
     
-    //[Result(0)]
-    [TestCase(result: 0)]
-    public static long GetAnswer2(string[] input)
-    {
-        return 0;
-    }
-    
+   
     public record struct Vector(int Y, int X)
     {
         public static Vector operator-(Vector a, Vector b) => new(a.Y - b.Y, a.X - b.X);
