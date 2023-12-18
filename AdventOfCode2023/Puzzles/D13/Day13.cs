@@ -7,37 +7,37 @@ public class Day13
 {
     [Result(31265)]
     [TestCase(result: 405)]
-    [Focus]
     public static int GetAnswer1(string[] input)
     {
         var patterns = ParsePatterns(input);
-        return patterns.Sum(FindMirrorValue);
+        return patterns.Sum(v => FindMirrorValue(v, -1));
     }
 
-    //[Result(0)]
-    [TestCase(result: 0)]
+    [Result(39359)]
+    [TestCase(result: 400)]
     public static long GetAnswer2(string[] input)
     {
-        return 0;
+        var patterns = ParsePatterns(input);
+        return patterns.Sum(FindAlternativeMirror);    
     }
     
-    private static int FindMirrorValue(Pattern pattern)
+    private static int FindMirrorValue(Pattern pattern, int ignore)
     {
-        var result = FindMirror(pattern.Rows);
-        return result > 0 ? 100 * result : FindMirror(pattern.Columns);
+        var result = FindMirror(pattern.Rows, ignore / 100) * 100;
+        return result >0 ? result : FindMirror(pattern.Columns, ignore % 100);
     }
     
-    public static int FindMirror(int[] input)
+    public static int FindMirror(int[] input, int ignore)
     {
-        var result = FindMirrorBeforeMidpoint(input);
+        var result = FindMirrorBeforeMidpoint(input, ignore);
         if (result > 0) return result;
         
         // reverse and search again
-        result = FindMirrorBeforeMidpoint(input.Reverse().ToArray());
+        result = FindMirrorBeforeMidpoint(input.Reverse().ToArray(), input.Length - ignore);
         return result > 0 ? input.Length - result : -1;
     }
     
-    public static int FindMirrorBeforeMidpoint(int[] input)
+    public static int FindMirrorBeforeMidpoint(int[] input, int ignore)
     {
         // only search until we get half way, we will get back later for the other side
         for (var i = 0; i < input.Length / 2 ; i++)
@@ -49,10 +49,34 @@ public class Day13
                 {
                     if (input[i - j] != input[i + j + 1]) goto tryNext;
                 }
-
-                return i + 1;
+                if (i +1 != ignore) return i + 1;
             }
             tryNext: ;
+        }
+
+        return -1;
+    }
+
+
+    static int FindAlternativeMirror(Pattern pattern)
+    {
+        int originalPosition = FindMirrorValue(pattern, -1);
+        for (int i = 0; i < pattern.Rows.Length; i++)
+        {
+            for (var j = 0; j < pattern.Columns.Length; j++)
+            {
+                // flip one bit
+                pattern.Columns[j] ^= 1 << i;
+                pattern.Rows[i] ^= 1 << j;
+
+                var value = FindMirrorValue(pattern, originalPosition);
+
+                // flip it back
+                pattern.Columns[j] ^= 1 << i;
+                pattern.Rows[i] ^= 1 << j;
+                
+                if (value >= 0 && value != originalPosition) return value;
+            }
         }
 
         return -1;

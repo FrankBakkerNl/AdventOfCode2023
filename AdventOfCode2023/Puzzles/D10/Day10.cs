@@ -14,18 +14,16 @@ public class Day10
     {
         var beastLocation = GetBeastPosition(input);
         var map = new Map(input);
-        var (w1, w2) = GetStartWalkers(map, beastLocation);
+        var walker = new Walker(beastLocation, GetFirstStartDirection(map, beastLocation));
 
         var distance = 0;
-        while (w1.Vector != w2.Vector || distance == 0)
+        do
         {
-            w1 = map.Step(w1);
-            if (w1.Vector == w2.Vector) return distance;
-            w2 = map.Step(w2);
+            walker = map.Step(walker);
             distance++;
-        }
-        
-        return distance;
+        } while (walker.Vector != beastLocation);
+
+        return distance /2;
     }
     
     [Result(445)]
@@ -42,11 +40,27 @@ public class Day10
     private static void ReplaceBeast(string[] input, Vector beastLocation)
     {
         var map = new Map(input);
-        var openings = GetStartDirections(map, beastLocation);
+        var openings = GetStartDirections(map, beastLocation).ToArray();
 
+        // Find a type of pipe that will fit here
         var replaceChar = _pipeTypes
             .Single(p => openings.Contains(p.Value.Opening1) && openings.Contains(p.Value.Opening2)).Key;
         input[beastLocation.Y] = input[beastLocation.Y].Replace('S', replaceChar);
+    }
+    
+    static bool[,] FindMainLoop(string[] input, Vector beastLocation)
+    {
+        var result = new bool[input.Length, input[0].Length];
+        var map = new Map(input);
+        var walker = new Walker(beastLocation, GetFirstStartDirection(map, beastLocation));
+        
+        do
+        {
+            walker = map.Step(walker);
+            result[walker.Vector.Y, walker.Vector.X] = true;
+        } while (walker.Vector != beastLocation);
+
+        return result;
     }
 
     static int CountTilesInLine(string line, bool[,] mainLoopMap, int y)
@@ -66,9 +80,9 @@ public class Day10
                 if (inside) numInsideCells++;
             }
 
-            else if (c == '|') inside = !inside;
+            else if (c is '|') inside = !inside;
 
-            else if (c == 'L' || c == 'F') startHlineChar = c;
+            else if (c is 'L' or 'F') startHlineChar = c;
 
             else if ((startHlineChar, c) is ('L', '7') or ('F', 'J'))
             {
@@ -78,22 +92,6 @@ public class Day10
         }
 
         return numInsideCells;
-    }
-
-    static bool[,] FindMainLoop(string[] input, Vector beastLocation)
-    {
-        var result = new bool[input.Length, input[0].Length];
-        var map = new Map(input);
-        var (walker, _) = GetStartWalkers(map, beastLocation);
-
-        while (true)
-        {
-            result[walker.Vector.Y, walker.Vector.X] = true;
-
-            walker = walker.Step();
-            if (walker.Vector == beastLocation) return result; 
-            walker = map.GetPipe(walker.Vector).Turn(walker);            
-        }
     }
 
     static Vector GetBeastPosition(string[] input)
@@ -107,26 +105,16 @@ public class Day10
         throw new UnreachableException();
     }
     
-    static (Walker, Walker) GetStartWalkers(Map map, Vector start)
+    private static Direction GetFirstStartDirection(Map map, Vector start) => GetStartDirections(map, start).First();
+
+    private static IEnumerable<Direction> GetStartDirections(Map map, Vector start)
     {
-        var starts = GetStartDirections(map, start).Select(d => new Walker(start, d)).ToArray();
-        return (starts[0], starts[1]);
-    }
-    
-    private static Direction[] GetStartDirections(Map map, Vector start)
-    {
-        var openings = Enum.GetValues<Direction>().Select(direction =>
+        return Enum.GetValues<Direction>().Where(direction =>
         {
             var vector = GetMoveOffset(direction);
             var pipe = map.TryGetPipe(start + vector);
-            if (pipe?.CanEnter(Opposite(direction)) ?? false)
-            {
-                return (Direction?)direction;
-            }
-
-            return null;
-        }).OfType<Direction>().ToArray();
-        return openings;
+            return pipe?.CanEnter(Opposite(direction)) ?? false;
+        });
     }
 
     static Direction Opposite(Direction direction) => (Direction)(((int)direction + 2) % 4);
@@ -151,6 +139,7 @@ public class Day10
         ['J'] = new (West, North),
         ['7'] = new (South, West),
         ['F'] = new (East, South),
+        ['S'] = new (0, 0), // use a dummy for the start
     };
     
     class Map(string[] input)

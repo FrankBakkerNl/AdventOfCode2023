@@ -23,13 +23,14 @@ public class Day11
     {
         var (galaxies, galaxyInRow, galaxyInColumn) = ScanInput(input);
         long total = 0;
-        for (var i = 0; i+1 < galaxies.Count; i++)
+        for (var i = 0; i + 1 < galaxies.Length; i++)
         {
-            for (var j = i+1; j < galaxies.Count; j++)
+            for (var j = i+1; j < galaxies.Length; j++)
             {
                 total += (galaxies[i] - galaxies[j]).Distance;
                 total += expansionFactor * Expansion(galaxyInRow, galaxies[i].Y, galaxies[j].Y);
-                total += expansionFactor * Expansion(galaxyInColumn, galaxies[i].X, galaxies[j].X);            }
+                total += expansionFactor * Expansion(galaxyInColumn, galaxies[i].X, galaxies[j].X);
+            }
         }
         return total;
     }
@@ -48,7 +49,7 @@ public class Day11
         return count;
     }
 
-    static (List<Vector> galaxies, bool[] galaxyInRow, bool[] galaxyInColumn) ScanInput(string[] input)
+    static (Vector[] galaxies, bool[] galaxyInRow, bool[] galaxyInColumn) ScanInput(string[] input)
     {
         List<Vector> galaxies = new List<Vector>();
         var galaxyInColumn = new bool[input[0].Length];
@@ -67,13 +68,12 @@ public class Day11
             }
         }
 
-        return (galaxies, galaxyInRow, galaxyInColumn);
+        return (galaxies.ToArray(), galaxyInRow, galaxyInColumn);
     }
     
-   
-    public record struct Vector(int Y, int X)
+    public readonly record struct Vector(int Y, int X)
     {
-        public static Vector operator-(Vector a, Vector b) => new(a.Y - b.Y, a.X - b.X);
-        public int Distance => Abs(Y) + Abs(X);
+        public static Vector operator-(Vector a, Vector b) => new(b.Y - a.Y, b.X - a.X);
+        public int Distance => Y + Abs(X);
     }
 }
