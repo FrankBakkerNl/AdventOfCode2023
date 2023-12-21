@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace AdventOfCode2023.Puzzles.Day14;
+﻿namespace AdventOfCode2023.Puzzles.Day14;
 
 /// <summary>
 /// https://adventofcode.com/2023/day/xx
@@ -17,17 +15,15 @@ public class Day14
             var firstFree = 0;
             for (var y = 0; y < input.Length; y++)
             {
+                switch (input[y][x])
                 {
-                    switch (input[y][x])
-                    {
-                        case '#':
-                            firstFree = y + 1;
-                            break;
-                        case 'O':
-                            score += input.Length - firstFree;
-                            firstFree++;
-                            break;
-                    }
+                    case '#':
+                        firstFree = y + 1;
+                        break;
+                    case 'O':
+                        score += input.Length - firstFree;
+                        firstFree++;
+                        break;
                 }
             }
         }
@@ -37,7 +33,6 @@ public class Day14
 
     [Result(96447)]
     [TestCase(result: 64)]
-    [Focus]
     public static long GetAnswer2(string[] input)
     {
         int targetIteration = 1_000_000_000;
@@ -55,16 +50,18 @@ public class Day14
             if (!cycleNumberByConfiguration.TryAdd(array, i))
             {
                 // We have seen this exact configuration before so we found a cycle of the pattern 
-                
+
                 var startCycle = cycleNumberByConfiguration[array];
-                var correspondingIteration =  FindCorrespondingIteration(startCycle, i, targetIteration);
+                var correspondingIteration = FindCorrespondingIteration(startCycle, i, targetIteration);
                 return GetWeight(weights[correspondingIteration]);
             }
+
             array = Cycle(array, tempBuffer);
         }
+
         return GetWeight(array);
     }
-    
+
     private static char[,] BuildArray(string[] input)
     {
         var array = new char[input[0].Length, input.Length];
@@ -111,7 +108,7 @@ public class Day14
         TiltAndTurn(tempBuffer, newBuffer);
         return newBuffer;
     }
-    
+
     static void TiltAndTurn(char[,] input, char[,] output)
     {
         for (var x = 0; x < input.GetLength(0); x++)
@@ -136,9 +133,9 @@ public class Day14
                 }
             }
         }
-        
+
         // While filling the output array we also turn it at the same time to avoid
-        void SetTransposed(int x, int y, char c) => output[output.GetLength(0) - y -1, x] = c;
+        void SetTransposed(int x, int y, char c) => output[output.GetLength(0) - y - 1, x] = c;
     }
 
     class ArrayComparer : IEqualityComparer<char[,]>
