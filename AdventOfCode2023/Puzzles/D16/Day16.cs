@@ -11,9 +11,16 @@ public class Day16
     [TestCase(result: 46)]
     public static int GetAnswer1(string[] input)
     {
+        var startBeam = new Beam(0, 0, Direction.East);
+
+        return GetCount(input, startBeam);
+    }
+
+    private static int GetCount(string[] input, Beam startBeam)
+    {
         var seenBeams = new HashSet<Beam>();
         var backlog = new Stack<Beam>();
-        var startBeam = new Beam(0, 0, Direction.East);
+
         (startBeam,  _) = Reflect(startBeam, input);
         
         backlog.Push(startBeam);
@@ -92,11 +99,20 @@ public class Day16
     enum Direction { North = 0, East = 1, South = 2, West = 3 }
 
 
-    //[Result(0)]
-    [TestCase(result: 0)]
+    [Result(8444)]
+    [TestCase(result: 51)]
     [Focus]
     public static long GetAnswer2(string[] input)
     {
-        return 0;
+        return GetStartBeams(input.Length).Select(b => GetCount(input, b)).Max();
     }
+
+    static IEnumerable<Beam> GetStartBeams(int size) =>
+        Enumerable.Range(0, size).SelectMany(i => new[]
+        {
+            new Beam(0, i, Direction.East),
+            new Beam(size - 1, i, Direction.West),
+            new Beam(i, 0, Direction.South),
+            new Beam(i, size -1, Direction.North)
+        });
 }
