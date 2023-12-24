@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace AdventOfCode2023.Puzzles.Day17;
+﻿namespace AdventOfCode2023.Puzzles.Day17;
 
 /// <summary>
 /// https://adventofcode.com/2023/day/17
@@ -9,11 +7,18 @@ public class Day17
 {
     [Result(1155)]
     [TestCase(result: 102)]
-    [Focus]
     public static int GetAnswer1(string[] input)
     {
         var field = GetField(input);
-        return FindPath(field, new Walker(new Vector(0, 0), new Vector(0, 0), 0, 0));
+        return FindPath(field, new Walker(new Vector(0, 0), new Vector(0, 0), 0, 0), AllowedSteps);
+    }
+    
+    [Result(1283)]
+    [TestCase(result: 94)]
+    public static long GetAnswer2(string[] input)
+    {
+        var field = GetField(input);
+        return FindPath(field, new Walker(new Vector(0, 0), new Vector(0, 0), 0, 0), AllowedStepsUltraCrucible);
     }
 
     static int[,] GetField(string[] input)
@@ -30,7 +35,7 @@ public class Day17
         return result;
     }
 
-    static int FindPath(int[,] field, Walker start)
+    static int FindPath(int[,] field, Walker start, StepProvider stepProvider)
     {
         var fieldSize = field.GetLength(0);
         var endPoint = new Vector(field.GetUpperBound(1), field.GetUpperBound(0));
@@ -51,7 +56,7 @@ public class Day17
                 continue;
             }
             
-            var newWalkers = AllowedSteps(current, fieldSize, field, sharedBuffer);
+            var newWalkers = stepProvider(current, fieldSize, field, sharedBuffer);
             foreach (var newWalker in newWalkers)
             {
                 // do not continue on a path that looses more heat than the best found yet
@@ -75,6 +80,8 @@ public class Day17
         0 <= walker.X && walker.X < size && 
         0 <= walker.Y && walker.Y < size;
 
+    delegate Span<Walker> StepProvider(Walker walker, int size, int[,] field, Span<Walker> output);
+
     static Span<Walker> AllowedSteps(Walker walker, int size, int[,] field, Span<Walker> output)
     {
         var count = 0;
@@ -88,15 +95,50 @@ public class Day17
                 // only continue in current direction if steps left
                 if (walker.StepsInDirection < 3)
                 {
-                    output[count++] = walker with
-                    {
-                        Position = newPosition, StepsInDirection = walker.StepsInDirection + 1, HeatLoss = walker.HeatLoss + field[newPosition.X, newPosition.Y]
-                    };
+                    output[count++] = new Walker(newPosition, move, walker.StepsInDirection + 1, walker.HeatLoss + field[newPosition.X, newPosition.Y]);
                 }
             }
             else if (move != walker.Direction.GetOpposite())
             {
                 output[count++] = new Walker(Position: newPosition, Direction: move, StepsInDirection: 1, HeatLoss: walker.HeatLoss + field[newPosition.X, newPosition.Y]);
+            }
+        }
+
+        return output[..count];
+    }
+    
+    static Span<Walker> AllowedStepsUltraCrucible(Walker walker, int size, int[,] field, Span<Walker> output)
+    {
+        var count = 0;
+        foreach (var move in Moves)
+        {
+            if (move == walker.Direction)
+            {
+                var newPosition = walker.Position + move;
+                if (!IsOnMap(newPosition, size)) continue;
+                
+                // an ultra crucible can move a maximum of ten consecutive blocks without turning.
+                if (walker.StepsInDirection < 10)
+                {
+                    output[count++] = new Walker(newPosition, move, walker.StepsInDirection + 1, walker.HeatLoss + field[newPosition.X, newPosition.Y]);
+                }
+            }
+            else if (move != walker.Direction.GetOpposite())
+            {
+                // Once an ultra crucible starts moving in a direction, it needs to move a minimum of four blocks in
+                // that direction before it can turn
+                
+                var newPosition = walker.Position + move * 4;
+                if (!IsOnMap(newPosition, size)) continue;
+
+                var tempPosition = walker.Position;
+                var heatLoss = walker.HeatLoss;
+                for (int i = 0; i < 4; i++)
+                {
+                    tempPosition += move;
+                    heatLoss += field[tempPosition.X, tempPosition.Y];
+                }
+                output[count++] = new Walker(newPosition, move, StepsInDirection: 4, heatLoss);
             }
         }
 
@@ -109,15 +151,8 @@ public class Day17
     {
         public Vector GetOpposite() => new (-Y, -X);
         public static Vector operator+(Vector a, Vector b) => new(a.Y + b.Y, a.X + b.X);
-        public static Vector operator-(Vector a, Vector b) => new(b.Y - a.Y, b.X - a.X);
+        public static Vector operator*(Vector a, int x) => new(x * a.Y, x * a.X);
     }
     
     readonly record struct Walker(Vector Position, Vector Direction, int StepsInDirection, int HeatLoss);
-
-    //[Result(0)]
-    [TestCase(result: 0)]
-    public static long GetAnswer2(string[] input)
-    {
-        return 0;
-    }
 }
